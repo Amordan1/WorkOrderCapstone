@@ -1,2 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Context path="/WorkOrderCapstone"/>
+<Context path="/WorkOrderCapstone">
+<Resource name="jdbc/RMFall22"
+auth="Container"
+type="javax.sql.DataSource"
+username="RMFALL22"
+password="Fall@2022"
+driverClassName="com.microsoft.sqlserver.jdbc.SQLServerDriver"
+url="jdbc:sqlserver://p3nwplsk12sql-v18.shr.prod.phx3.secureserver.net:1433;databaseName=RMFall22;encrypt=true;trustServerCertificate=true;"
+maxActive="15"
+maxIdle="3"/>
+<CredentialHandler algorithm="PBKDF2WithHmacSHA256" className="org.apache.catalina.realm.SecretKeyCredentialHandler" iterations="4096" keyLength="256" saltLength="16"/>
+</Context>
