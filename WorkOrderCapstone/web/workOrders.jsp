@@ -48,7 +48,7 @@
                             <td><c:out value='${item.value.workOrderStart}'/></td>
                             <td><c:out value='${item.value.workOrderEstEnd}'/></td>
                             <td><c:out value='${item.value.workOrderEnd}'/></td>
-                            <td><c:out value='${item.value.estPrice}'/></td>
+                            <td><c:out value='$${item.value.estPrice}'/></td>
                             <td><c:out value='${item.value.complete}'/></td>
                             <form action="Private" method="post">
                                 <input type="hidden" name="action" value="cancelOrder"> 

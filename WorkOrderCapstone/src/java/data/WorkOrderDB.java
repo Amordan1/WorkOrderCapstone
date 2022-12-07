@@ -296,6 +296,38 @@ public class WorkOrderDB {
         }
     }
     
+    public static LinkedHashMap<String, String> adminLogin() throws SQLException {
+        ConnectionPool pool = ConnectionPool.getInstance();
+        Connection connection = pool.getConnection();
+        PreparedStatement ps = null;
+        ResultSet rs = null;
+        String query = "SELECT UserName, Password FROM RMFall22.Admin";
+        try {
+            ps = connection.prepareStatement(query);
+            rs = ps.executeQuery();
+            User user = null;
+            LinkedHashMap<String, String> users = new LinkedHashMap();
+            while (rs.next()) {
+                String userName = rs.getString("UserName");
+                String password = rs.getString("Password");
+                users.put(userName, password);
+            }
+            return users;
+        } catch (SQLException e) {
+            LOG.log(Level.SEVERE, "*** select all sql", e);
+            throw e;
+        } finally {
+            try {
+                rs.close();
+                ps.close();
+                pool.freeConnection(connection);
+            } catch (Exception e) {
+                LOG.log(Level.SEVERE, "*** select all null pointer??", e);
+                throw e;
+            }
+        }
+    }
+    
     public static Integer getCustomerID(String UserName) throws SQLException {
         ConnectionPool pool = ConnectionPool.getInstance();
         Connection connection = pool.getConnection();
@@ -311,6 +343,38 @@ public class WorkOrderDB {
             while (rs.next()) {
                 int CustomerID = Integer.parseInt(rs.getString("CustomerID"));
                 ID = CustomerID;
+            }
+            return ID;
+        } catch (SQLException e) {
+            LOG.log(Level.SEVERE, "*** select all sql", e);
+            throw e;
+        } finally {
+            try {
+                rs.close();
+                ps.close();
+                pool.freeConnection(connection);
+            } catch (Exception e) {
+                LOG.log(Level.SEVERE, "*** select all null pointer??", e);
+                throw e;
+            }
+        }
+    }
+    
+    public static Integer getAdminID(String UserName) throws SQLException {
+        ConnectionPool pool = ConnectionPool.getInstance();
+        Connection connection = pool.getConnection();
+        PreparedStatement ps = null;
+        ResultSet rs = null;
+        String query = "SELECT EmployeeID FROM RMFall22.Admin "
+                      +"WHERE UserName = ?";
+        try {
+            ps = connection.prepareStatement(query);
+            ps.setString(1, UserName);
+            rs = ps.executeQuery();
+            int ID = 0;
+            while (rs.next()) {
+                int EmployeeID = Integer.parseInt(rs.getString("EmployeeID"));
+                ID = EmployeeID;
             }
             return ID;
         } catch (SQLException e) {
@@ -347,6 +411,128 @@ public class WorkOrderDB {
             while (rs.next()) {
                 
                 int WorkOrderID = rs.getInt("WorkOrderID");
+                String WorkOrderDesc = rs.getString("WorkOrderDesc");
+                Date WorkOrderStart = rs.getDate("WorkOrderStart");
+                LocalDate WorkOrderSt = null;
+                if (WorkOrderStart != null) {
+                    WorkOrderSt = WorkOrderStart.toLocalDate();
+                }
+                Date WorkOrderEnd = rs.getDate("WorkOrderEnd");
+                LocalDate WorkOrderE = null;
+                if (WorkOrderEnd != null) {
+                    WorkOrderE = WorkOrderEnd.toLocalDate();
+                }
+                Date WorkOrderEstEnd = rs.getDate("WorkOrderEstEnd");
+                LocalDate WorkOrderEst = null;
+                if(WorkOrderEstEnd != null){
+                    WorkOrderEst = WorkOrderEstEnd.toLocalDate();
+                    
+                }
+                Float EstPrice = rs.getFloat("EstPrice");
+                Boolean Complete = rs.getBoolean("Complete");
+                int AssignedAdmin = rs.getInt("AssignedAdmin");
+                
+                order = new WorkOrder(WorkOrderID, CustomerID, WorkOrderDesc, WorkOrderSt, WorkOrderEst, WorkOrderE, EstPrice, Complete, AssignedAdmin);
+                orders.put(WorkOrderID, order);
+            }
+            return orders;
+        } catch (SQLException e) {
+            LOG.log(Level.SEVERE, "*** select all sql", e);
+            throw e;
+            
+        } finally {
+            try {
+                rs.close();
+                ps.close();
+                pool.freeConnection(connection);
+            } catch (Exception e) {
+                LOG.log(Level.SEVERE, "*** select all null pointer??", e);
+                throw e;
+            }
+        }
+    }
+    
+    public static LinkedHashMap<Integer, WorkOrder> selectUnassignedWorkOrders(int EmployeeID) throws SQLException {
+        ConnectionPool pool = ConnectionPool.getInstance();
+        Connection connection = pool.getConnection();
+        PreparedStatement ps = null;
+        ResultSet rs = null;
+
+        String query = "SELECT * FROM RMFall22.WorkOrder "
+                      +"WHERE AssignedAdmin = ?";
+        try {
+            ps = connection.prepareStatement(query);
+            ps.setInt(1, EmployeeID);
+            rs = ps.executeQuery();
+            
+            WorkOrder order = null;
+            LinkedHashMap<Integer, WorkOrder> orders = new LinkedHashMap();
+
+            while (rs.next()) {
+                
+                int WorkOrderID = rs.getInt("WorkOrderID");
+                int CustomerID = rs.getInt("CustomerID");
+                String WorkOrderDesc = rs.getString("WorkOrderDesc");
+                Date WorkOrderStart = rs.getDate("WorkOrderStart");
+                LocalDate WorkOrderSt = null;
+                if (WorkOrderStart != null) {
+                    WorkOrderSt = WorkOrderStart.toLocalDate();
+                }
+                Date WorkOrderEnd = rs.getDate("WorkOrderEnd");
+                LocalDate WorkOrderE = null;
+                if (WorkOrderEnd != null) {
+                    WorkOrderE = WorkOrderEnd.toLocalDate();
+                }
+                Date WorkOrderEstEnd = rs.getDate("WorkOrderEstEnd");
+                LocalDate WorkOrderEst = null;
+                if(WorkOrderEstEnd != null){
+                    WorkOrderEst = WorkOrderEstEnd.toLocalDate();
+                    
+                }
+                Float EstPrice = rs.getFloat("EstPrice");
+                Boolean Complete = rs.getBoolean("Complete");
+                int AssignedAdmin = rs.getInt("AssignedAdmin");
+                
+                order = new WorkOrder(WorkOrderID, CustomerID, WorkOrderDesc, WorkOrderSt, WorkOrderEst, WorkOrderE, EstPrice, Complete, AssignedAdmin);
+                orders.put(WorkOrderID, order);
+            }
+            return orders;
+        } catch (SQLException e) {
+            LOG.log(Level.SEVERE, "*** select all sql", e);
+            throw e;
+            
+        } finally {
+            try {
+                rs.close();
+                ps.close();
+                pool.freeConnection(connection);
+            } catch (Exception e) {
+                LOG.log(Level.SEVERE, "*** select all null pointer??", e);
+                throw e;
+            }
+        }
+    }
+    
+    public static LinkedHashMap<Integer, WorkOrder> selectAllAdminWorkOrders(int employeeID) throws SQLException {
+        ConnectionPool pool = ConnectionPool.getInstance();
+        Connection connection = pool.getConnection();
+        PreparedStatement ps = null;
+        ResultSet rs = null;
+
+        String query = "SELECT * FROM RMFall22.WorkOrder "
+                      +"WHERE AssignedAdmin = ?";
+        try {
+            ps = connection.prepareStatement(query);
+            ps.setInt(1, employeeID);
+            rs = ps.executeQuery();
+            
+            WorkOrder order = null;
+            LinkedHashMap<Integer, WorkOrder> orders = new LinkedHashMap();
+
+            while (rs.next()) {
+                
+                int WorkOrderID = rs.getInt("WorkOrderID");
+                int CustomerID = rs.getInt("CustomerID");
                 String WorkOrderDesc = rs.getString("WorkOrderDesc");
                 Date WorkOrderStart = rs.getDate("WorkOrderStart");
                 LocalDate WorkOrderSt = null;
@@ -604,5 +790,94 @@ public class WorkOrderDB {
         }
     }
     
+    public static void adminAssign(int EmployeeID, int OrderID) throws SQLException {
+        ConnectionPool pool = ConnectionPool.getInstance();
+        Connection connection = pool.getConnection();
+        PreparedStatement ps = null;
+
+        String query
+                = "UPDATE RMFall22.WorkOrder SET AssignedAdmin = ? "
+                + "WHERE WorkOrderID = ?";
+        
+        try {
+            ps = connection.prepareStatement(query);
+            ps.setInt(1, EmployeeID);
+            ps.setInt(2, OrderID);
+            
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            LOG.log(Level.SEVERE, "*** insert sql", e);
+            throw e;
+            
+        } finally {
+            try {
+                ps.close();
+                pool.freeConnection(connection);
+            } catch (Exception e) {
+                LOG.log(Level.SEVERE, "*** insert null pointer??", e);
+                throw e;
+            }
+        }
+    }
     
+    public static void adminComplete(int OrderID) throws SQLException {
+        ConnectionPool pool = ConnectionPool.getInstance();
+        Connection connection = pool.getConnection();
+        PreparedStatement ps = null;
+
+        String query
+                = "UPDATE RMFall22.WorkOrder SET Complete = 1, WorkOrderEnd = ? "
+                + "WHERE WorkOrderID = ?";
+        
+        try {
+            ps = connection.prepareStatement(query);
+            ps.setDate(1, Date.valueOf(LocalDate.now()));
+            ps.setInt(2, OrderID);
+            
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            LOG.log(Level.SEVERE, "*** insert sql", e);
+            throw e;
+            
+        } finally {
+            try {
+                ps.close();
+                pool.freeConnection(connection);
+            } catch (Exception e) {
+                LOG.log(Level.SEVERE, "*** insert null pointer??", e);
+                throw e;
+            }
+        }
+    }
+    
+    public static void adminSubmitEdit(Float Price, LocalDate EstEndDate, int OrderID) throws SQLException {
+        ConnectionPool pool = ConnectionPool.getInstance();
+        Connection connection = pool.getConnection();
+        PreparedStatement ps = null;
+
+        String query
+                = "UPDATE RMFall22.WorkOrder SET EstPrice = ?, EstEndDate = ? "
+                + "WHERE WorkOrderID = ?";
+        
+        try {
+            ps = connection.prepareStatement(query);
+            ps.setFloat(1, Price);
+            ps.setDate(2, Date.valueOf(EstEndDate));
+            ps.setInt(3, OrderID);
+            
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            LOG.log(Level.SEVERE, "*** insert sql", e);
+            throw e;
+            
+        } finally {
+            try {
+                ps.close();
+                pool.freeConnection(connection);
+            } catch (Exception e) {
+                LOG.log(Level.SEVERE, "*** insert null pointer??", e);
+                throw e;
+            }
+        }
+    }
 }

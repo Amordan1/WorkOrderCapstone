@@ -20,7 +20,7 @@
                 <h2>${message}</h2>
                 <!--login page-->
                 <form action="Private" method="post">
-                    <input type="hidden" name="action" value="attemptLogin">
+                    <input type="hidden" name="action" value="adminLogin">
 
                     <label>User Name</label>
                     <input style="width: unset; margin-left: unset;" type="text" name="userName" value="">

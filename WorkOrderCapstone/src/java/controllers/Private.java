@@ -150,12 +150,174 @@ public class Private extends HttpServlet {
                     url = "/workOrders.jsp";
                 }
             }
+            if (action.equals("adminLogin")) {
+                String userName = request.getParameter("userName");
+                String hash = request.getParameter("password");
+
+                SecretKeyCredentialHandler ch;
+                String password = "";
+                Boolean check = false;
+
+                HashMap<String, String> credentials = new HashMap();
+
+                try {
+                    credentials = WorkOrderDB.adminLogin();
+                } catch (SQLException e) {
+
+                }
+                //credentials = UserDB
+                String passFromMap = credentials.get(userName);
+
+                try {
+                    ch = new SecretKeyCredentialHandler();
+                    ch.setAlgorithm("PBKDF2WithHmacSHA256");
+                    ch.setKeyLength(256);
+                    ch.setSaltLength(16);
+                    ch.setIterations(4096);
+
+                    check = ch.matches(hash, passFromMap);
+                } catch (Exception e) {
+
+                }
+                //hard coded credential list / replace with call to DB to retrieve
+                //password stored for user.
+
+                if (passFromMap == null) {
+                    //INVALID LOGIN - set generic error message and take them to index
+                    message = "Your password is incorrect";
+                    url = "/admin.jsp";
+                } else if (passFromMap.contains(hash)) {
+                    //VALID LOGIN - set success message and take them to page for
+                    //logged in users
+                    session.setAttribute("loggedInUser", userName);
+                    session.setAttribute("loginPassword", hash);
+                    HashMap<Integer, WorkOrder> orders = new HashMap();
+
+                    try 
+                    {
+                        Integer ID = WorkOrderDB.getAdminID(userName);
+                        session.setAttribute("adminID", ID);
+                        orders = WorkOrderDB.selectAllAdminWorkOrders(ID);
+                    } catch (SQLException sq) {
+                        
+                    }
+                    request.setAttribute("items", orders);
+                    message = "Login Sucesss";
+                    url = "/adminWorkOrders.jsp";
+                } else {
+                    message = "Your password is incorrect";
+                    url = "/admin.jsp";
+                }
+            }
         }
         //code for logged in only actions should happen here
         switch (action) {
             case "logout": {
                 session.invalidate();
                 url = "/login.jsp";
+                break;
+            }
+            case "adminEdit": {
+                if (loggedInUser == null || loggedInUser.equals("")) {
+                    //user is NOT logged in, set up a message and take them back to the index
+                    message = "Please login";
+                    url = "/admin.jsp";
+                } else {
+                    
+                    int idValue = -1; 
+                    try {
+                        idValue = Integer.parseInt(request.getParameter("idValue"));
+                    } catch (Exception e) {
+
+                    }
+                    WorkOrder order = new WorkOrder();
+                    try {
+                        order = WorkOrderDB.selectOneWorkOrder(idValue);
+                        if (order.getComplete() == false){
+                            WorkOrderDB.selectOneWorkOrder(idValue);
+                        }
+                    } catch (Exception e) {
+                    }
+                    request.setAttribute("estEndDate", order.getWorkOrderEstEnd());
+                    request.setAttribute("estPrice", order.getEstPrice());
+                    request.setAttribute("idValue", idValue);
+                    url = "/adminEditOrder.jsp";
+                }
+                break;
+            }
+            case "adminSubmitEdit": {
+                LinkedHashMap<Integer, WorkOrder> orders = new LinkedHashMap();
+                try {
+                    Integer employeeID = (Integer) session.getAttribute("adminID");
+                    orders = WorkOrderDB.selectAllAdminWorkOrders(employeeID);
+                } catch (Exception e) {
+                }
+                String idValue = (String) request.getParameter("idValue");
+                String estEndDate = (String) request.getParameter("estEndDate");
+                String estPrice = (String) request.getParameter("estPrice");
+
+
+                WorkOrder currentOrder = orders.get(Integer.valueOf(idValue));
+                try {
+                    WorkOrderDB.adminSubmitEdit(Float.parseFloat(estPrice), LocalDate.parse(estEndDate), currentOrder.getWorkOrderID());
+                } catch (Exception e) {
+                }
+
+               try {
+                    Integer employeeID = (Integer) session.getAttribute("adminID");
+                    orders = WorkOrderDB.selectAllAdminWorkOrders(employeeID);
+                } catch (Exception e) {
+                }
+                request.setAttribute("items", orders);
+                url = "/adminWorkOrders.jsp";
+                break;
+            }
+            
+            case "adminComplete": {
+                if (loggedInUser == null || loggedInUser.equals("")) {
+                    //user is NOT logged in, set up a message and take them back to the index
+                    message = "Please login";
+                    url = "/admin.jsp";
+                } else {
+                    HashMap<Integer, WorkOrder> orders = new HashMap();
+                    int idValue = Integer.parseInt(request.getParameter("idValue"));
+                    Integer employeeID = (Integer) session.getAttribute("adminID");
+
+                    try {
+                        WorkOrderDB.adminComplete(idValue);
+                        
+                        orders = WorkOrderDB.selectAllAdminWorkOrders(employeeID);
+                        request.setAttribute("items", orders);
+                        
+                    } catch (SQLException e) {
+                        
+                    }
+                    url = "/adminWorkOrders.jsp";
+                }
+                break;
+            }
+            
+            case "orders": {
+                if (loggedInUser == null || loggedInUser.equals("")) {
+                    //user is NOT logged in, set up a message and take them back to the index
+                    message = "Please login";
+                    url = "/login.jsp";
+                } else {
+
+                    HashMap<Integer, WorkOrder> orders = new HashMap();
+                    String userName = (String) session.getAttribute("loggedInUser");
+
+                    try 
+                    {
+                        Integer ID = WorkOrderDB.getAdminID(userName);
+                        session.setAttribute("adminID", ID);
+                        orders = WorkOrderDB.selectAllAdminWorkOrders(ID);
+                    } catch (SQLException sq) {
+                        
+                    }
+                    request.setAttribute("items", orders);
+                    url = "/adminWorkOrders.jsp";
+                }
                 break;
             }
             
@@ -186,6 +348,50 @@ public class Private extends HttpServlet {
                     url = "/login.jsp";
                 } else {
                     url = "/newOrder.jsp";
+                }
+                break;
+            }
+            
+            case "adminAll": {
+                if (loggedInUser == null || loggedInUser.equals("")) {
+                    //user is NOT logged in, set up a message and take them back to the index
+                    message = "Please login";
+                    url = "/admin.jsp";
+                } else {
+                    HashMap<Integer, WorkOrder> orders = new HashMap();
+
+                    try {
+                        orders = WorkOrderDB.selectUnassignedWorkOrders(0);
+                        request.setAttribute("items", orders);
+                        
+                    } catch (SQLException e) {
+                        
+                    }
+                    url = "/adminAll.jsp";
+                }
+                break;
+            }
+            
+            case "adminAssign": {
+                if (loggedInUser == null || loggedInUser.equals("")) {
+                    //user is NOT logged in, set up a message and take them back to the index
+                    message = "Please login";
+                    url = "/admin.jsp";
+                } else {
+                    HashMap<Integer, WorkOrder> orders = new HashMap();
+                    int idValue = Integer.parseInt(request.getParameter("idValue"));
+                    Integer employeeID = (Integer) session.getAttribute("adminID");
+
+                    try {
+                        WorkOrderDB.adminAssign(employeeID, idValue);
+                        
+                        orders = WorkOrderDB.selectUnassignedWorkOrders(0);
+                        request.setAttribute("items", orders);
+                        
+                    } catch (SQLException e) {
+                        
+                    }
+                    url = "/adminAll.jsp";
                 }
                 break;
             }

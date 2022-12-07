@@ -37,7 +37,6 @@
 
                         
                         <th></th>
-                        <th></th>
                     </thead>
                         <c:forEach  var="item" items="${items}" >
 
@@ -51,14 +50,9 @@
                             <td><c:out value='$${item.value.estPrice}'/></td>
                             <td><c:out value='${item.value.complete}'/></td>
                             <form action="Private" method="post">
-                                <input type="hidden" name="action" value="adminEdit"> 
+                                <input type="hidden" name="action" value="adminAssign"> 
                                 <input type="hidden" name="idValue"  value="<c:out value='${item.value.workOrderID}'/>">
-                                <td><input type="submit" value="Update"></td>
-                            </form>
-                            <form action="Private" method="post">
-                                <input type="hidden" name="action" value="adminComplete"> 
-                                <input type="hidden" name="idValue"  value="<c:out value='${item.value.workOrderID}'/>">
-                                <td><input type="submit" value="Complete"></td>
+                                <td><input type="submit" value="Assign to Me"></td>
                             </form>
                         </tr>
                         
