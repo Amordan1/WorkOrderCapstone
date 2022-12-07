@@ -16,8 +16,7 @@
     <body>
         <div class="wrapper">
             <jsp:include page="nav.jsp" />
-            <h1>Social Media Fun Site Registration!</h1>
-         <h2><c:out value='${errorMessage}'/></h2>
+            <h1>Work Order Registration</h1>
             <h2><c:out value='${message}'/></h2>
 
             <div class="center">
@@ -27,41 +26,52 @@
                     <label>User Name:</label>
                     <input type="text" name="userName" value="<c:out value='${user.userName}'/>">
                     <br>
+                    <span name="userNameError" value="">${userNameError}</span>
+                    <br>
 
                     <label>Email:</label>
                     <input type="text" name="email" value="<c:out value='${user.email}'/>">
+                    <span name="emailError" value="">${emailError}</span>
                     <br>
 
                     <label>Password:</label>
                     <input type="text" name="password" value="<c:out value='${user.password}'/>">
+                    <span name="passwordError" value="">${passwordError}</span>
                     <br>
                     
                     <label>First Name:</label>
                     <input type="text" name="firstName" value="<c:out value='${user.firstName}'/>">
+                    <span name="firstNameError" value="">${firstNameError}</span>
                     <br>
                     
                     <label>Last Name:</label>
                     <input type="text" name="lastName" value="<c:out value='${user.lastName}'/>">
+                    <span name="lastNameError" value="">${lastNameError}</span>
                     <br>
 
                     <label>Phone:</label>
                     <input type="text" name="phone" value="<c:out value='${user.phone}'/>">
+                    <span name="phoneError" value="">${phoneError}</span>
                     <br>
                     
                     <label>Street Address:</label>
                     <input type="text" name="street" value="<c:out value='${user.street}'/>">
+                    <span name="streetError" value="">${streetError}</span>
                     <br>
                     
                     <label>City:</label>
                     <input type="text" name="city" value="<c:out value='${user.city}'/>">
+                    <span name="cityError" value="">${cityError}</span>
                     <br>
                     
-                    <label>State:</label>
+                    <label>State (Abbrev; NE for Nebraska):</label>
                     <input type="text" name="state" value="<c:out value='${user.state}'/>">
+                    <span name="stateError" value="$">${stateError}</span>
                     <br>
                     
                     <label>ZIP:</label>
                     <input type="text" name="zip" value="<c:out value='${user.zip}'/>">
+                    <span name="zipError" value="">${zipError}</span>
                     <br>
 
                     <input type="submit" value="Register!">

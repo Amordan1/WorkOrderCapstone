@@ -70,18 +70,25 @@ public class Public extends HttpServlet {
 
         String url = "/index.jsp";
         String errorMessage = "";
+        String message = "";
         
         if (action == null) {
             action = "home";
         }
 
         switch (action) {
+            
             case "home": {
                 url = "/login.jsp";
                 break;
             }
             case "login": {
                 url = "/login.jsp";
+                break;
+            }
+            
+            case "admin": {
+                url = "/admin.jsp";
                 break;
             }
             case "register": {
@@ -103,56 +110,95 @@ public class Public extends HttpServlet {
                 String hashedPassword = "";
                 SecretKeyCredentialHandler ch;
                 HttpSession session = request.getSession();
+                
+                String error1 = "";
+                String error2 = "";
+                String error3 = "";
+                String error4 = "";
+                String error5 = "";
+                String error6 = "";
+                String error7 = "";
+                String error8 = "";
+                String error9 = "";
+                String error10 = "";
+                
+                
 
                 User user = new User();
                
 
-                if ("".equals(userName)) {
-                    errorMessage += "Username must not be blank. <br>";
-                }
+                
                 try {
-                    LinkedHashMap<String, User> linkMap = new LinkedHashMap(WorkOrderDB.selectAllUsers());
+                    LinkedHashMap<String, User> linkMap = new LinkedHashMap(WorkOrderDB.selectAllUsersByUserName());
                     if (linkMap.containsKey(userName)) {
-                        errorMessage += "This user name is already taken.<br> ";
+                        request.setAttribute("userNameError", "This user name is already taken.");
+                        error1 = "There was a problem.";
                     }
                 } catch (SQLException ex) {
-                    errorMessage += "There was a problem.";
+                    errorMessage = "There was a problem.";
                 }
 
-                if (userName.length() <= 4 && userName.length() >= 20) {
-                    errorMessage += "Your user name must be between 4 and 20 characters.<br> ";
+                if (userName.length() <= 4 || userName.length() >= 20) {
+                    request.setAttribute("userNameError", "Your user name must be between 5 and 20 characters.");
+                    error1 = "There was a problem.";
                 }
-                if ("".equals(email)) {
-                    errorMessage += "Email must not be blank. <br>";
+                
+                if ("".equals(userName)) {
+                    request.setAttribute("userNameError", "Username must not be blank.");
+                    error1 = "There was a problem.";
+                } else { 
+                    user.setUserName(userName);
                 }
+                
+                if (error1.isEmpty()) {
+                    request.setAttribute("userNameError", "");
+                }
+                
                 if (email.length() < 5) {
-                    errorMessage += "Your email address isn't long enough.<br> ";
-                }
-                if (email != null) {
-                    Pattern pattern = Pattern.compile("^[A-Za-z0-9.]{0,}[@]{1,1}[A-Za-z0-9].{1,}[A-Za-z0-9]{1,}");
-                    Matcher matcher = pattern.matcher(email);
-                    Boolean isMatch = matcher.matches();
-                    if(isMatch == true){
-                        
-                    } else {
-                        errorMessage += "Invalid email address. Must be in the format of 'ABC@123.org'.";
-                    }
-
-                    
+                    request.setAttribute("emailError", "Your email address isn't long enough.");
+                    error2 = "There was a problem.";
                 } else {
-                    errorMessage += "Invalid email address. Must contain an @ before a .";
+                    if (email != null) {
+                        Pattern pattern = Pattern.compile("^[A-Za-z0-9.]{0,}[@]{1,1}[A-Za-z0-9].{1,}[A-Za-z0-9]{1,}");
+                        Matcher matcher = pattern.matcher(email);
+                        Boolean isMatch = matcher.matches();
+                        if(isMatch == true){
+
+                        } else {
+                            request.setAttribute("emailError", "Invalid email address. Must be in the format of 'ABC@123.org'.");
+                            error2 = "There was a problem.";
+                        }
+
+
+                    } else {
+                        request.setAttribute("emailError", "Invalid email address. Must contain an @ before a .");
+                        error2 = "There was a problem.";
+                    }
                 }
+                              
+                
                 try {
                     if (WorkOrderDB.getUsersEmail().containsKey(email)) {
-                        errorMessage += "This email address is already in use. <br>";
+                        request.setAttribute("emailError", "This email address is already in use.");
+                        error2 = "There was a problem.";
                     }
                 } catch (SQLException sq) {
                 }
-                if ("".equals(password)) {
-                    errorMessage += "Password must not be blank. <br>";
+                
+                if ("".equals(email)) {
+                    request.setAttribute("emailError", "Email must not be blank.");
+                    error2 = "There was a problem.";
+                } else {
+                    user.setEmail(email);
                 }
+                
+                if (error2.isEmpty()) {
+                    request.setAttribute("emailError", "");
+                }
+                
                 if (password.length() <= 8) {
-                    errorMessage += "The password isn't long enough. <br>It must be over 8 characters. <br>";
+                    request.setAttribute("passwordError", "The password isn't long enough. <br>It must be over 8 characters.");
+                    error3 = "There was a problem.";
                 } else {
                     try {
                     ch = new SecretKeyCredentialHandler();
@@ -166,34 +212,141 @@ public class Public extends HttpServlet {
                         
                     }
                 }
-
-                    user.setUserName(userName);
-                    user.setPassword(hashedPassword);
-                    user.setEmail(email);
-                    user.setAccountAge(LocalDate.now());
-                    user.setRoleID(1);
+                
+                if ("".equals(password)) {
+                    request.setAttribute("passwordError", "Password must not be blank.");
+                    error3 = "There was a problem.";
+                } else {
+                    user.setPassword(password);
+                }
+                
+                if (error3.isEmpty()) {
+                    request.setAttribute("passwordError", "");
+                }
+                
+                if ("".equals(firstName)){
+                    request.setAttribute("firstNameError", "First Name must not be blank.");
+                    error4 = "There was a problem.";
+                } else {
                     user.setFirstName(firstName);
+                }
+                
+                if (error4.isEmpty()) {
+                    request.setAttribute("firstNameError", "");
+                }
+                
+                if ("".equals(lastName)){
+                    request.setAttribute("lastNameError", "Last Name must not be blank.");
+                    error5 = "There was a problem.";
+                } else {
                     user.setLastName(lastName);
+                }
+                
+                if (error5.isEmpty()) {
+                    request.setAttribute("lastNameError", "");
+                }
+                
+                if ("".equals(phone)){
+                    request.setAttribute("phoneError", "Phone must not be blank.");
+                    error6 = "There was a problem.";
+                } else {
                     user.setPhone(phone);
+                    Pattern pattern = Pattern.compile("^[0-9]{0,1}[ ]{0,1}[0-9]{3,3}[-][0-9]{3,3}[-][0-9]{4,4}");
+                    Matcher matcher = pattern.matcher(phone);
+                        Boolean isMatch = matcher.matches();
+                        if(isMatch == true){
+
+                        } else {
+                            error6 = "There was a problem.";
+                            request.setAttribute("phoneError", "Phone number be in the format of 123-456-7890 or 1 234-567-8910");
+                        }
+                }
+                
+                if (error6.isEmpty()) {
+                    request.setAttribute("phoneError", "");
+                }
+                
+                if ("".equals(street)){
+                    request.setAttribute("streetError", "Street must not be blank.");
+                    error7 = "There was a problem.";
+                } else {
                     user.setStreet(street);
+                }
+                
+                if (error7.isEmpty()) {
+                    request.setAttribute("streetError", "");
+                }
+                
+                if ("".equals(city)){
+                    request.setAttribute("cityError", "City must not be blank.");
+                    error8 = "There was a problem.";
+                } else {
                     user.setCity(city);
+                }
+                
+                if (error8.isEmpty()) {
+                    request.setAttribute("cityError", "");
+                }
+                
+                if ("".equals(state)){
+                    request.setAttribute("stateError", "State must not be blank.");
+                    error9 = "There was a problem.";
+                } else {
                     user.setState(state);
+                    Pattern pattern = Pattern.compile("^[A-Z]{2,2}");
+                    Matcher matcher = pattern.matcher(state);
+                        Boolean isMatch = matcher.matches();
+                        if(isMatch == true){
+
+                        } else {
+                            error9 = "There was a problem.";                            
+                            request.setAttribute("stateError", "State must be in its abrreviated form, capitalized.");
+                        }
+                }
+                
+                if (error9.isEmpty()) {
+                    request.setAttribute("stateError", "");
+                }
+                
+                if ("".equals(zip)){
+                    request.setAttribute("zipError", "Zip must not be blank.");
+                    error10 = "There was a problem.";
+                } else {
                     user.setZip(Integer.parseInt(zip));
+                    Pattern pattern = Pattern.compile("^[0-9]{5,5}");
+                    Matcher matcher = pattern.matcher(zip);
+                        Boolean isMatch = matcher.matches();
+                        if(isMatch == true){
+
+                        } else {
+                            request.setAttribute("zipError", "Zip must be 5 digits.");
+                            error10 = "There was a problem.";
+                        }
+                } 
+                
+                if (error10.isEmpty()) {
+                    request.setAttribute("zipError", "");
+                }
+                
+                errorMessage = error1+error2+error3+error4+error5+error6+error7+error8+error9+error10;
+
                 request.setAttribute("user", user);
                 if (errorMessage.isEmpty()) {
                     // add the person in the users
-
+                    user.setAccountAge(LocalDate.now());       
+                    user.setRoleID(1);
+                    user.setPassword(hashedPassword);
                     try {
                         WorkOrderDB.insertNewUser(user);
                     } catch (SQLException e) {
 
                     }
                     user.setPassword(password);
-                    errorMessage = "You have succesfully registered.  " + user.getUserName();
+                    message = "You have succesfully registered " + user.getUserName();
                 }
             }
         }
-        
+        request.setAttribute("message", message);
         request.setAttribute("errorMessage", errorMessage);
         getServletContext().getRequestDispatcher(url).forward(request, response);
     }

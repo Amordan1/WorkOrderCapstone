@@ -10,6 +10,7 @@ import business.Receipt;
 import business.WorkOrder;
 import business.User;
 import data.WorkOrderDB;
+import java.io.Console;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.sql.SQLException;
@@ -22,6 +23,8 @@ import java.util.LinkedHashMap;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -155,6 +158,7 @@ public class Private extends HttpServlet {
                 url = "/login.jsp";
                 break;
             }
+            
             case "display": {
                 if (loggedInUser == null || loggedInUser.equals("")) {
                     //user is NOT logged in, set up a message and take them back to the index
@@ -213,84 +217,99 @@ public class Private extends HttpServlet {
                     } catch (Exception e) {
                         message = "SQL Error something wrong with your post.";
                     }
-                    LinkedHashMap<Integer, WorkOrder> orderMessage = new LinkedHashMap();
+                    HashMap<Integer, WorkOrder> orders = new HashMap();
+                    Integer customerID = (Integer) session.getAttribute("customerID");
+
                     try {
-                        orderMessage = WorkOrderDB.selectNewWorkOrder(ID, currentTime);
-                    } catch (Exception e) {
+                        orders = WorkOrderDB.selectAllUsersWorkOrders(customerID);
+                        request.setAttribute("items", orders);
+                        
+                    } catch (SQLException e) {
                         
                     }
-                    //create a list of users to pull logged in user from
-                    if (orderMessage != null && loggedInUser != null) {
-                        WorkOrder order = orderMessage.get(ID);
-                        int orderID = order.getWorkOrderID();
-                        message = "Order #" + orderID + " was successfully added.";
-                    }
+                    action="display";
                 }
+                break;
+            }
+            case "editOrder": {
+                if (loggedInUser == null || loggedInUser.equals("")) {
+                    //user is NOT logged in, set up a message and take them back to the index
+                    message = "Please login";
+                    url = "/login.jsp";
+                } else {
+                    
+                    int idValue = -1; 
+                    try {
+                        idValue = Integer.parseInt(request.getParameter("orderID"));
+                    } catch (Exception e) {
+
+                    }
+                    WorkOrder order = new WorkOrder();
+                    try {
+                        order = WorkOrderDB.selectOneWorkOrder(idValue);
+                        if (order.getComplete() == false){
+                            WorkOrderDB.selectOneWorkOrder(idValue);
+                        }
+                    } catch (Exception e) {
+                    }
+                    request.setAttribute("orderText", order.getWorkOrderDesc());
+                    request.setAttribute("idValue", idValue);
+                    url = "/editOrder.jsp";
+                }
+                break;
+            }
+            case "submitEdit": {
+                LinkedHashMap<Integer, WorkOrder> orders = new LinkedHashMap();
+                try {
+                    Integer customerID = (Integer) session.getAttribute("customerID");
+                    orders = WorkOrderDB.selectAllUsersWorkOrders(customerID);
+                } catch (Exception e) {
+                }
+                String idValue = (String) request.getParameter("idValue");
+                String postText = (String) request.getParameter("orderText");
+
+                WorkOrder currentOrder = orders.get(Integer.valueOf(idValue));
+                try {
+                    WorkOrderDB.updateOrder(postText, currentOrder.getWorkOrderID());
+                } catch (Exception e) {
+                }
+
+                try {
+                    Integer customerID = (Integer) session.getAttribute("customerID");
+                    orders = WorkOrderDB.selectAllUsersWorkOrders(customerID);
+                } catch (Exception e) {
+                }
+                request.setAttribute("items", orders);
+                url = "/workOrders.jsp";
+                break;
+            }
+            case "cancelOrder": {
+
+                int idValue = -1;
+                try {
+                    idValue = Integer.parseInt(request.getParameter("idValue"));
+                } catch (Exception e) {
+                    
+                }
+                WorkOrder order = new WorkOrder();
+                try {
+                    order = WorkOrderDB.selectOneWorkOrder(idValue);
+                    if (order.getComplete() == false){
+                        WorkOrderDB.cancelOrder(idValue);
+                    }
+                } catch (Exception e) {
+                }
+                LinkedHashMap<Integer, WorkOrder> orders = new LinkedHashMap();
+                try {
+                    Integer customerID = (Integer) session.getAttribute("customerID");
+                    orders = WorkOrderDB.selectAllUsersWorkOrders(customerID);
+                } catch (Exception e) {
+                    
+                }
+                request.setAttribute("items", orders);
                 break;
 
             }
-//            case "submitEdit": {
-//                LinkedHashMap<Integer, Post> posts = new LinkedHashMap();
-//                try {
-//                    posts = PostDB.selectAllCurrentUser(loggedInUser);
-//
-//                } catch (Exception e) {
-//                }
-//                String idValue = (String) request.getParameter("idValue");
-//                String postText = (String) request.getParameter("postText");
-//
-//                Post currentPost = posts.get(Integer.valueOf(idValue));
-//                try {
-//                    PostDB.postUpdate(currentPost.getId(), postText);
-//                } catch (Exception e) {
-//                }
-//                try {
-//                    posts = PostDB.selectAllCurrentUser(loggedInUser);
-//
-//                } catch (Exception e) {
-//                }
-//                request.setAttribute("posts", posts);
-//                url = "/profile.jsp";
-//                break;
-//            }
-//            case "editOrder": {
-//                url = "/editPost.jsp";
-//
-//                LinkedHashMap<Integer, Post> posts = new LinkedHashMap();
-//                try {
-//                    posts = PostDB.selectAllCurrentUser(loggedInUser);
-//
-//                } catch (Exception e) {
-//                }
-//                request.setAttribute("posts", posts);
-//                String idValue = request.getParameter("idValue");
-//
-//                Post currentPost = posts.get(Integer.valueOf(idValue));
-//                request.setAttribute("idValue", idValue);
-//                request.setAttribute("postText", currentPost.getPost());
-//
-//                break;
-//
-//            }
-//
-//            case "deleteOrder": {
-//
-//                String idValue = request.getParameter("idValue");
-//
-//                try {
-//                    PostDB.postDelete(idValue);
-//                } catch (Exception e) {
-//                }
-//                LinkedHashMap<Integer, Post> posts = new LinkedHashMap();
-//                try {
-//                    posts = PostDB.selectAllCurrentUser(loggedInUser);
-//
-//                } catch (Exception e) {
-//                }
-//                request.setAttribute("posts", posts);
-//                break;
-//
-//            }
 //            case "orderReply": {
 //                LocalDateTime currentTime = LocalDateTime.now();
 //                String commentText = (String) request.getParameter("commentText");
@@ -375,158 +394,234 @@ public class Private extends HttpServlet {
 //                break;
 //
 //            }
-//            case "profile": {
-//
-//                if (loggedInUser == null || loggedInUser.equals("")) {
-//                    //user is NOT logged in, set up a message and take them back to the index
-//                    url = "/login.jsp";
-//                    message = "Please login";
-//                } else {
-//                    url = "/profile.jsp";
-//                    LinkedHashMap<Integer, Post> posts = new LinkedHashMap();
-//                    try {
-//                        posts = PostDB.selectAllCurrentUser(loggedInUser);
-//                        request.setAttribute("posts", posts);
-//                    } catch (Exception e) {
-//                    }
-//                    HashMap<String, User> users = new HashMap();
-//                    try {
-//                        users = UserDB.selectAll();
-//                    } catch (SQLException e) {
-//                    }
-//                    if (users != null) {
-//                        String userName = (String) session.getAttribute("loggedInUser");
-//
-//                        User currentUser = users.get(userName);
-//
-//                        String email = currentUser.getEmail();
-//                        String password = currentUser.getPassword();
-//                        request.setAttribute("email", email);
-//                        request.setAttribute("password", password);
-//                    }
-//                }
-//                break;
-//            }
-//
-//            case "editUser": {
-//                if (loggedInUser == null || loggedInUser.equals("")) {
-//                    //user is NOT logged in, set up a message and take them back to the index
-//                    message = "Please login";
-//                    url = "login.jsp";
-//                } else {
-//                    //user is logged in
-//                    String errorMessage = "";
-//                    String userName = (String) session.getAttribute("loggedInUser");
-//
-//                    message = "Welcome " + userName + "<br>";
-//                    HashMap<String, User> users = new HashMap();
-//                    try {
-//                        users = UserDB.selectAll();
-//                    } catch (SQLException e) {
-//                    }
-//                    //create a list of users to pull logged in user from
-//                    if (users != null) {
-//                        //get current user's email and password from DB
-//                        User currentUser = users.get(userName);
-//                        String email = currentUser.getEmail();
-//                        String password = currentUser.getPassword();
-//                        String newEmail = request.getParameter("email");
-//                        String newPassword = request.getParameter("password");
-//                        request.setAttribute("email", email);
-//                        request.setAttribute("password", password);
-//                        //get edited password from form
-//                        try {
-//                            if (UserDB.getEmail().containsKey(newEmail)) {
-//                                if (newEmail.equals(email)) {
-//
-//                                } else {
-//                                    errorMessage += "This email address is already in use. <br>";
-//                                }
-//
-//                            }
-//
-//                        } catch (Exception e) {
-//                        }
-//
-//                        if ("".equals(newEmail)) {
-//                            errorMessage += "Email must not be blank. <br>";
-//                        }
-//                        if (newEmail.length() < 5) {
-//                            errorMessage += "Your email address isn't long enough.<br> ";
-//                        }
-//                        if (newEmail.contains("@") && newEmail.contains(".")) {
-//                            if (newEmail.indexOf("@") < newEmail.indexOf(".")) {
-//                                //valid email
-//
-//                            }
-//                        } else {
-//                            errorMessage += "Invalid email";
-//                        }
-//
-//                        if ("".equals(newPassword)) {
-//                            errorMessage += "Password must not be blank. <br>";
-//                        }
-//                        if (newPassword.length() <= 10) {
-//                            errorMessage += "The password isn't long enough. <br>It must be over 10 characters. <br>";
-//                        }
-//
-//                        if (errorMessage.isEmpty()) {
-//
-//                            if (newEmail.equals(email)) {
-//                                message += "Email was unchanged <br>";
-//                            } else {
-//                                //update user Email in DB
-//
-//                                currentUser.setEmail(newEmail);
-//                                message += "Email has changed. <br>";
-//                            }
-//                            if (newPassword.equals(session.getAttribute("loginPassword"))) {
-//                                message += "Password was unchanged <br>";
-//                            } else {
-//
-//                                String hash = "";
-//
-//                                SecretKeyCredentialHandler ch;
-//
-//                                try {
-//                                    ch = new SecretKeyCredentialHandler();
-//                                    ch.setAlgorithm("PBKDF2WithHmacSHA256");
-//                                    ch.setKeyLength(256);
-//                                    ch.setSaltLength(16);
-//                                    ch.setIterations(4096);
-//
-//                                    hash = ch.mutate(newPassword);
-//                                    currentUser.setPassword(hash);
-//                                } catch (Exception ex) {
-//
-//                                }
-//                                message += "Password has changed.";
-//                                session.setAttribute("loginPassword", newPassword);
-//                            }
-//                            try {
-//                                UserDB.userUpdate(currentUser, currentUser.getUserName());
-//                            } catch (Exception e) {
-//                            }
-//                            request.setAttribute("email", newEmail);
-//                            request.setAttribute("password", newPassword);
-//                        } else {
-//
-//                            message = "You need to log in.";
-//                            url = "/login.jsp";
-//                        }
-//
-//                    }
-//                }
-//                break;
-//            }
+            case "profile": {
 
+                if (loggedInUser == null || loggedInUser.equals("")) {
+                    //user is NOT logged in, set up a message and take them back to the index
+                    url = "/login.jsp";
+                    message = "Please login";
+                } else {
+                    url = "/profile.jsp";
+                    LinkedHashMap<Integer, User> users = new LinkedHashMap();
+                    try {
+                        users = WorkOrderDB.selectAllUsers();
+                    } catch (Exception e) {
+                    }
+                    if (users != null) {
+                        Integer customerID = (Integer) session.getAttribute("customerID");
+                        String password = (String) session.getAttribute("loginPassword");
+                        User currentUser = users.get(customerID);
+                        currentUser.setPassword(password);
+
+                        request.setAttribute("user", currentUser);
+                    }
+                }
+                break;
+            }
+
+            case "editProfile": {
+                if (loggedInUser == null || loggedInUser.equals("")) {
+                    //user is NOT logged in, set up a message and take them back to the index
+                    message = "Please login";
+                    url = "login.jsp";
+                } else {
+                    //user is logged in
+                    String errorMessage = "";
+                    Integer customerID = (Integer) session.getAttribute("customerID");
+                    HashMap<Integer, User> users = new HashMap();
+                    try {
+                        users = WorkOrderDB.selectAllUsers();
+                    } catch (SQLException e) {
+                    }
+                    //create a list of users to pull logged in user from
+                    if (users != null) {
+                        
+                    String password = request.getParameter("password");
+                    String firstName = request.getParameter("firstName");
+                    String lastName = request.getParameter("lastName");
+                    String phone = request.getParameter("phone");
+                    String street = request.getParameter("street");
+                    String city = request.getParameter("city");
+                    String state = request.getParameter("state");
+                    String zip = request.getParameter("zip");
+                    String hashedPassword = "";
+                    SecretKeyCredentialHandler ch;
+
+                    String error1 = "";
+                    String error2 = "";
+                    String error3 = "";
+                    String error4 = "";
+                    String error5 = "";
+                    String error6 = "";
+                    String error7 = "";
+                    String error8 = "";
+                    String error9 = "";
+                    String error10 = "";
+
+                    User user = users.get(customerID);
+
+                    if (password.length() <= 8) {
+                        request.setAttribute("passwordError", "The password isn't long enough. <br>It must be over 8 characters.");
+                        error3 = "There was a problem.";
+                    } else {
+                        try {
+                        ch = new SecretKeyCredentialHandler();
+                        ch.setAlgorithm("PBKDF2WithHmacSHA256");
+                        ch.setKeyLength(256);
+                        ch.setSaltLength(16);
+                        ch.setIterations(4096);
+
+                        hashedPassword = ch.mutate(password);
+                        } catch (Exception e){
+
+                        }
+                    }
+
+                    if ("".equals(password)) {
+                        request.setAttribute("passwordError", "Password must not be blank.");
+                        error3 = "There was a problem.";
+                    } else {
+                        user.setPassword(password);
+                    }
+
+                    if (error3.isEmpty()) {
+                        request.setAttribute("passwordError", "");
+                    }
+
+                    if ("".equals(firstName)){
+                        request.setAttribute("firstNameError", "First Name must not be blank.");
+                        error4 = "There was a problem.";
+                    } else {
+                        user.setFirstName(firstName);
+                    }
+
+                    if (error4.isEmpty()) {
+                        request.setAttribute("firstNameError", "");
+                    }
+
+                    if ("".equals(lastName)){
+                        request.setAttribute("lastNameError", "Last Name must not be blank.");
+                        error5 = "There was a problem.";
+                    } else {
+                        user.setLastName(lastName);
+                    }
+
+                    if (error5.isEmpty()) {
+                        request.setAttribute("lastNameError", "");
+                    }
+
+                    if ("".equals(phone)){
+                        request.setAttribute("phoneError", "Phone must not be blank.");
+                        error6 = "There was a problem.";
+                    } else {
+                        user.setPhone(phone);
+                        Pattern pattern = Pattern.compile("^[0-9]{0,1}[ ]{0,1}[0-9]{3,3}[-][0-9]{3,3}[-][0-9]{4,4}");
+                        Matcher matcher = pattern.matcher(phone);
+                            Boolean isMatch = matcher.matches();
+                            if(isMatch == true){
+
+                            } else {
+                                error6 = "There was a problem.";
+                                request.setAttribute("phoneError", "Phone number be in the format of 123-456-7890 or 1 234-567-8910");
+                            }
+                    }
+
+                    if (error6.isEmpty()) {
+                        request.setAttribute("phoneError", "");
+                    }
+
+                    if ("".equals(street)){
+                        request.setAttribute("streetError", "Street must not be blank.");
+                        error7 = "There was a problem.";
+                    } else {
+                        user.setStreet(street);
+                    }
+
+                    if (error7.isEmpty()) {
+                        request.setAttribute("streetError", "");
+                    }
+
+                    if ("".equals(city)){
+                        request.setAttribute("cityError", "City must not be blank.");
+                        error8 = "There was a problem.";
+                    } else {
+                        user.setCity(city);
+                    }
+
+                    if (error8.isEmpty()) {
+                        request.setAttribute("cityError", "");
+                    }
+
+                    if ("".equals(state)){
+                        request.setAttribute("stateError", "State must not be blank.");
+                        error9 = "There was a problem.";
+                    } else {
+                        user.setState(state);
+                        Pattern pattern = Pattern.compile("^[A-Z]{2,2}");
+                        Matcher matcher = pattern.matcher(state);
+                            Boolean isMatch = matcher.matches();
+                            if(isMatch == true){
+
+                            } else {
+                                error9 = "There was a problem.";                            
+                                request.setAttribute("stateError", "State must be in its abrreviated form, capitalized.");
+                            }
+                    }
+
+                    if (error9.isEmpty()) {
+                        request.setAttribute("stateError", "");
+                    }
+
+                    if ("".equals(zip)){
+                        request.setAttribute("zipError", "Zip must not be blank.");
+                        error10 = "There was a problem.";
+                    } else {
+                        user.setZip(Integer.parseInt(zip));
+                        Pattern pattern = Pattern.compile("^[0-9]{5,5}");
+                        Matcher matcher = pattern.matcher(zip);
+                            Boolean isMatch = matcher.matches();
+                            if(isMatch == true){
+
+                            } else {
+                                request.setAttribute("zipError", "Zip must be 5 digits.");
+                                error10 = "There was a problem.";
+                            }
+                    } 
+
+                    if (error10.isEmpty()) {
+                        request.setAttribute("zipError", "");
+                    }
+
+                    errorMessage = error1+error2+error3+error4+error5+error6+error7+error8+error9+error10;
+
+                    request.setAttribute("user", user);
+                    if (errorMessage.isEmpty()) {
+                        // add the person in the users
+                        user.setAccountAge(LocalDate.now());       
+                        user.setRoleID(1);
+                        request.setAttribute("loginPassword", user.getPassword());
+                        user.setPassword(hashedPassword);
+                        try {
+                            WorkOrderDB.updateUser(user);
+                        } catch (SQLException e) {
+
+                        }
+                        url="/workOrders.jsp";
+                        user.setPassword(password);
+                        message = "You have succesfully registered " + user.getUserName();
+                    }
+                }
+            }
+        break;
         }
+
+    }
         //regardless of what happens put the message in the request and forward
         // to url
         request.setAttribute("message", message);
 
         getServletContext().getRequestDispatcher(url).forward(request, response);
-    }
+}
 
     /**
      * Returns a short description of the servlet.

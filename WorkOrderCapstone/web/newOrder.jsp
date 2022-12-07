@@ -27,15 +27,15 @@
                 <form action="Private" method="post">
                     <input type="hidden" name="action" value="createOrder">
 
-                    <label>New order for</label>
+                    <label>New Order For:</label>
                     <input style="width: unset; margin-left: unset;" disabled="disabled" type="text" name="userName" value="${loggedInUser}">
-                    <br>
+                    <br><br>
 
-                    <label>Password</label>
-                    <input type="password" name="password" value="">
-                    <br>
+                    <label style="padding-left: 0; float: unset; padding-bottom: 1em;">Description of Work Order</label><br>
+                    <div style="display: flex; justify-content: center; align-items: center"><textarea type="text" style="height: 100; width: 400; resize: none; align-self: center" name="orderText" rows='10'cols='100' autofocus='true' maxlength='2000'><c:out value='${orderText}'/></textarea></div>
+                    <br><br><br>
 
-                    <input type="submit" value="Submit">
+                    <input type="submit" value="Submit Order">
                 </form>
             </div>
         </body>

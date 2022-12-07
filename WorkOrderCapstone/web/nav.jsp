@@ -52,6 +52,7 @@
     <a href="Private?action=profile">Profile </a>| 
     <a href="Private?action=display"> My Work Orders </a>|
     <a href="Public?action=register"> Registration </a>| <!--    index-->
-    <a href="Public?action=login"> Login</a> <!--    target-->
+    <a href="Public?action=login"> Login </a>|
+    <a href="Public?action=admin"> Admin Login</a><!--    target-->
 
 </nav>

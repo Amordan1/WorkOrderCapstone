@@ -15,7 +15,7 @@
         </head>
         <jsp:include page="nav.jsp" /> 
         <body>
-            <h1>Work Order Login</h1>
+            <h1>Admin Login</h1>
             <div class="center">
                 <h2>${message}</h2>
                 <!--login page-->

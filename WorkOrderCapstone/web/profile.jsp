@@ -1,94 +1,82 @@
 <%-- 
-   Document   : profile
-   Created on : 4/17/22, 10:56:23 AM
-   Author     : jwortmann
+    Document   : index
+    Created on : Sep 21, 2021, 1:02:53 PM
+    Author     : fs148523
 --%>
-
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
+<!DOCTYPE html>
 <html>
-    <div class="wrapper">
-        <head>
-            <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-            <title>Profile Page</title>
-            <link rel="stylesheet" href="styles/main.css" type="text/css"/>
-        </head>
-        <jsp:include page="LoggedInNav.jsp" /> 
-        <body>
-            <h1>Users Information</h1>
-            <h2><c:out value='${errorMessage}'/></h2>
-            <h2>${message}</h2>
-            <form>
-                <input type="hidden" name="action" value="logout"> 
-                <td><input type="submit" value="Logout"></td>
-            </form>
-            <!--        listed user info and allow to edit-->
+
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+        <title>Java Project-Registration Form</title>
+        <link rel="stylesheet" href="styles/main.css" type="text/css"/>
+    </head>
+    <body>
+        <div class="wrapper">
+            <jsp:include page="LoggedInNav.jsp" />
+            <h1>Edit Profile</h1>
+         <h2><c:out value='${errorMessages}'/></h2>
+            <h2><c:out value='${message}'/></h2>
+
             <div class="center">
-                <form action="Private" method="post">
-                    <input type="hidden" name="keyEdit" value="<c:out value='${user.getUserName()}'/>">
-                    <input type="hidden" name="action" value="edit" >
-
-
-                    <label>Email</label>
-                    <input type="text" name="email" value="<c:out value='${email}'/>">
+                <form action="Public" method="post">
+                    <label>User Name:</label>
+                    <input type="text" disabled="disabled" name="userName" value="<c:out value='${user.userName}'/>">
+                    <br>
+                    <span name="userNameError" value="">${userNameError}</span>
                     <br>
 
-                    <label>Password</label>
-                    <input type="text" name="password" value="<c:out value='${loginPassword}'/>">
+                    <label>Email:</label>
+                    <input type="text" disabled="disabled" name="email" value="<c:out value='${user.email}'/>">
+                    <span name="emailError" value="">${emailError}</span>
                     <br>
 
-
-                    <input type="submit" value="Edit">
-
-                </form>
-                <br>
-
-                <%-- 
-        This is where users create their posts. 
-                --%>
-                <form action="Private" method="post">
-                    <input type="hidden" name="action" value="createPost"> 
-                    <label style="padding-left: 0; float: unset; padding-bottom: 1em;">Create a post</label><br>
-                    <textarea type="text" style="height: 100; width: 400;" name="postText" rows='10'cols='100' autofocus='true' maxlength='1024'><c:out value='${postText}'/></textarea>
-                    <br><br><br>
-                    <input type="submit" value="Create Post">
-
-                </form>
-                <br>
-                <%-- 
-        This is where the user's comments are displayed. They are displayed by time in
-                descending order (latest first). 
-                --%>
-                <table style="margin: auto">
-                    <tr>
-                        <th>Time Stamp</th>
-                        <th><c:out value='${loggedInUser}'/> Posts</th>
-                        <th></th>
-                        <th></th>
-                        <th></th>
-                    </tr>
+                    <label>Password:</label>
+                    <input type="text" name="password" value="<c:out value='${user.password}'/>">
+                    <span name="passwordError" value="">${passwordError}</span>
+                    <br>
                     
+                    <label>First Name:</label>
+                    <input type="text" name="firstName" value="<c:out value='${user.firstName}'/>">
+                    <span name="firstNameError" value="">${firstNameError}</span>
+                    <br>
+                    
+                    <label>Last Name:</label>
+                    <input type="text" name="lastName" value="<c:out value='${user.lastName}'/>">
+                    <span name="lastNameError" value="">${lastNameError}</span>
+                    <br>
 
-                    <c:forEach  var="p" items="${posts}" >
-                        <tr>
+                    <label>Phone:</label>
+                    <input type="text" name="phone" value="<c:out value='${user.phone}'/>">
+                    <span name="phoneError" value="">${phoneError}</span>
+                    <br>
+                    
+                    <label>Street Address:</label>
+                    <input type="text" name="street" value="<c:out value='${user.street}'/>">
+                    <span name="streetError" value="">${streetError}</span>
+                    <br>
+                    
+                    <label>City:</label>
+                    <input type="text" name="city" value="<c:out value='${user.city}'/>">
+                    <span name="cityError" value="">${cityError}</span>
+                    <br>
+                    
+                    <label>State (Abbrev; NE for Nebraska):</label>
+                    <input type="text" name="state" value="<c:out value='${user.state}'/>">
+                    <span name="stateError" value="$">${stateError}</span>
+                    <br>
+                    
+                    <label>ZIP:</label>
+                    <input type="text" name="zip" value="<c:out value='${user.zip}'/>">
+                    <span name="zipError" value="">${zipError}</span>
+                    <br>
 
-                           <td><c:out value='${p.value.time}'/></td>
-                           <td><c:out value='${p.value.post}'/></td>
-                        <form>
-                            <input type="hidden" name="action" value="editPost"> 
-                            <input type="hidden" name="idValue"  value="<c:out value='${p.value.id}'/>">
-                            <td><input type="submit" value="Edit Post"></td>
-                        </form>
-                        <form>
-                            <input type="hidden" name="action" value="deletePost"> 
-                            <input type="hidden" name="idValue" value="<c:out value='${p.value.id}'/>">
-                            <td><input type="submit" value="Delete Post"></td>
-                        </form>
-
-                        </tr>
-                    </c:forEach>  
-                </table>
+                    <input type="submit" value="Submit Edit">
+                </form>
             </div>
-        </body>
-    </div>
+        </div>
+
+    </body>
 </html>
