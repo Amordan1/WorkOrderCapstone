@@ -22,13 +22,13 @@
                 <input type="hidden" name="idValue" value="${idValue}"> 
                 
                 <div><label>Est. End Date:</label>
-                <input type="date" name="userName" value="<c:out value='${estEndDate}'/>">
+                <input type="date" name="estEndDate" value="<c:out value='${estEndDate}'/>">
                 <br>
                 <span name="userNameError" value="">${estEndDateError}</span>
                 <br>
 
                 <label>Est. Price:</label>
-                <input type="text" name="email" value="${estPrice}">
+                <input type="text" name="estPrice" value="${estPrice}">
                 <span name="emailError" value="">${estPriceError}</span>
                 <br></div>
                 <input type="submit" value="Submit Edit">

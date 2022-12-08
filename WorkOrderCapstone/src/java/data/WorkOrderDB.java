@@ -112,6 +112,53 @@ public class WorkOrderDB {
         }
     }
     
+     public static LinkedHashMap<Integer, Admin> selectAllAdmins() throws SQLException {
+        ConnectionPool pool = ConnectionPool.getInstance();
+        Connection connection = pool.getConnection();
+        PreparedStatement ps = null;
+        ResultSet rs = null;
+
+        String query = "SELECT * FROM RMFall22.Admin";
+        try {
+            ps = connection.prepareStatement(query);
+            rs = ps.executeQuery();
+            
+            Admin admin = null;
+            LinkedHashMap<Integer, Admin> users = new LinkedHashMap();
+
+            while (rs.next()) {
+                
+                int EmployeeID = rs.getInt("EmployeeID");
+                String UserName = rs.getString("UserName");
+                String password = rs.getString("Password");
+                String FirstName = rs.getString("FirstName");
+                String LastName = rs.getString("LastName");
+                String Phone = rs.getString("Phone");
+                int Role = rs.getInt("RoleID");
+                LocalDate EmpHireDate = rs.getDate("EmpHireDate").toLocalDate();
+                LocalDate EmpBirthDate = rs.getDate("EmpHireDate").toLocalDate();
+                String EmpSSN = rs.getString("EmpSSN");
+                
+                admin = new Admin(EmployeeID, FirstName, LastName, UserName, password, Phone, Role, EmpHireDate, EmpBirthDate, EmpSSN);
+                users.put(EmployeeID, admin);
+            }
+            return users;
+        } catch (SQLException e) {
+            LOG.log(Level.SEVERE, "*** select all sql", e);
+            throw e;
+            
+        } finally {
+            try {
+                rs.close();
+                ps.close();
+                pool.freeConnection(connection);
+            } catch (Exception e) {
+                LOG.log(Level.SEVERE, "*** select all null pointer??", e);
+                throw e;
+            }
+        }
+    }
+    
     public static LinkedHashMap<String, User> selectAllUsersByUserName() throws SQLException {
         ConnectionPool pool = ConnectionPool.getInstance();
         Connection connection = pool.getConnection();
@@ -856,7 +903,7 @@ public class WorkOrderDB {
         PreparedStatement ps = null;
 
         String query
-                = "UPDATE RMFall22.WorkOrder SET EstPrice = ?, EstEndDate = ? "
+                = "UPDATE RMFall22.WorkOrder SET EstPrice = ?, WorkOrderEstEnd = ? "
                 + "WHERE WorkOrderID = ?";
         
         try {

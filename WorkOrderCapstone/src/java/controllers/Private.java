@@ -516,90 +516,6 @@ public class Private extends HttpServlet {
                 break;
 
             }
-//            case "orderReply": {
-//                LocalDateTime currentTime = LocalDateTime.now();
-//                String commentText = (String) request.getParameter("commentText");
-//                DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
-//                int commentID = Integer.valueOf(request.getParameter("commentID"));
-//
-//                Comment newComment = new Comment();
-//
-//                int characterLength = commentText.length();
-//                //if cmt is longer than 140, split
-//                if (characterLength > 140) {
-//                    message = "Your comment is too long. Maximum character length is 140 and you entered " + characterLength + " characters.";
-//                } else {
-//                    newComment.setTime(currentTime.format(formatter));
-//                    newComment.setComment(commentText);
-//                    newComment.setUsername(loggedInUser);
-//                    newComment.setPostID(commentID);
-//                    try {
-//                        CommentDB.insert(newComment);
-//                    } catch (Exception e) {
-//                        message = "SQL Error something wrong with your post.";
-//                    }
-//                    LinkedHashMap<Integer, Comment> comments = new LinkedHashMap();
-//                    try {
-//                        comments = CommentDB.selectAllCurrentUser();
-//
-//                    } catch (Exception e) {
-//                    }
-//                    HashMap<String, User> users = new HashMap();
-//                    try {
-//                        users = UserDB.selectAll();
-//                    } catch (SQLException e) {
-//                    }
-//                    //create a list of users to pull logged in user from
-//                    if (users != null && loggedInUser != null) {
-//                        User currentUser = users.get(loggedInUser);
-//                        String email = currentUser.getEmail();
-//                        String password = currentUser.getPassword();
-//                        request.setAttribute("email", email);
-//                        request.setAttribute("password", password);
-//                        request.setAttribute("loggedInUser", loggedInUser);
-//                    }
-//
-//                    request.setAttribute("commentText", commentText);
-//
-//                    request.setAttribute("comments", comments);
-//
-//                    request.setAttribute("linkMap", users);
-//                    if (loggedInUser == null || loggedInUser.equals("")) {
-//                        //user is NOT logged in, set up a message and take them back to the index
-//                        message = "Please login";
-//                        url = "/login.jsp";
-//                    } else {
-//                        String errorMessage = "";
-//                        String username = request.getParameter("userID");
-//                        url = "/displaypost.jsp";
-//                        // getting the post from the database
-//                        LinkedHashMap<Integer, Post> posts = new LinkedHashMap();
-//                        try {
-//                            posts = PostDB.selectLast5Post(username);
-//                            if (posts.isEmpty()) {
-//                                Post post = new Post();
-//                                post.setId(0);
-//                                post.setTime("");
-//                                post.setPost(username + " has not made any posts yet");
-//                                post.setUsername(username);
-//                                posts.put(0, post);
-//                            }
-//                        } catch (Exception e) {
-//                        }
-//
-//                        request.setAttribute("username", username);
-//                        message = "Welcome to " + username + "'s page";
-//                        request.setAttribute("posts", posts);
-//                        request.setAttribute("linkmap", users);
-//                        request.setAttribute("comments", comments);
-//                    }
-//
-//                    request.setAttribute("message", message);
-//                }
-//
-//                break;
-//
-//            }
             case "profile": {
 
                 if (loggedInUser == null || loggedInUser.equals("")) {
@@ -617,6 +533,31 @@ public class Private extends HttpServlet {
                         Integer customerID = (Integer) session.getAttribute("customerID");
                         String password = (String) session.getAttribute("loginPassword");
                         User currentUser = users.get(customerID);
+                        currentUser.setPassword(password);
+
+                        request.setAttribute("user", currentUser);
+                    }
+                }
+                break;
+            }
+            
+            case "adminProfile": {
+
+                if (loggedInUser == null || loggedInUser.equals("")) {
+                    //user is NOT logged in, set up a message and take them back to the index
+                    url = "/admin.jsp";
+                    message = "Please login";
+                } else {
+                    url = "/adminProfile.jsp";
+                    LinkedHashMap<Integer, Admin> admins = new LinkedHashMap();
+                    try {
+                        admins = WorkOrderDB.selectAllAdmins();
+                    } catch (Exception e) {
+                    }
+                    if (admins != null) {
+                        Integer employeeID = (Integer) session.getAttribute("adminID");
+                        String password = (String) session.getAttribute("loginPassword");
+                        Admin currentUser = admins.get(employeeID);
                         currentUser.setPassword(password);
 
                         request.setAttribute("user", currentUser);
