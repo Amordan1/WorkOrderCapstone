@@ -18,10 +18,12 @@
             <jsp:include page="LoggedInNav.jsp" />
             <h1>Edit Profile</h1>
          <h2><c:out value='${errorMessages}'/></h2>
-            <h2><c:out value='${message}'/></h2>
+            <h2><c:out value='${messages}'/></h2>
 
             <div class="center">
-                <form action="Public" method="post">
+                <form action="Private" method="post">
+                    <input type="hidden" name="action" value="editProfile"> 
+
                     <label>User Name:</label>
                     <input type="text" disabled="disabled" name="userName" value="<c:out value='${user.userName}'/>">
                     <br>

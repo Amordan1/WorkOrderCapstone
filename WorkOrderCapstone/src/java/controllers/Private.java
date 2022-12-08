@@ -753,7 +753,7 @@ public class Private extends HttpServlet {
                         } catch (SQLException e) {
 
                         }
-                        url="/workOrders.jsp";
+                        url="/profile.jsp";
                         user.setPassword(password);
                         message = "You have succesfully registered " + user.getUserName();
                     }

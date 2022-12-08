@@ -22,6 +22,9 @@
 
             <div class="center">
                 <form action="Public" method="post">
+                    <input type="hidden" name="action" value="adminEditProfile"> 
+
+                    
                     <label>User Name:</label>
                     <input type="text" disabled="disabled" name="userName" value="<c:out value='${user.userName}'/>">
                     <br>
